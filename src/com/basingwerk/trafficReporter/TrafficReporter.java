@@ -13,134 +13,116 @@ import javax.xml.parsers.SAXParser;
 
 public class TrafficReporter extends DefaultHandler {
     static private Writer out;
-    StringBuffer textBuffer;
-    static ArrayList<String> tags;
-    static Boolean incl;
-    
+
+    public ReportItem reportItem = null;
+
     public static void main(String[] args) {
-        if (args.length != 3) {
-            System.err.println("Usage: cmd <incl | excl> tagfilename xmlfilename");
+        if (args.length != 1) {
+            System.err.println("Usage: cmd xmlfilename");
             System.exit(1);
         }
-        if (args[0].equalsIgnoreCase("incl")) {
-            incl = true;
-        }
-        else {
-            if (args[0].equalsIgnoreCase("excl")) {
-                incl = false;
-            }
-            else {
-                System.err.println("Usage: cmd <incl | excl> tagfilename xmlfilename");
-                System.exit(1);
-            }
-        }
-        tags = readTags (args[1]);
-        
+
         try {
             out = new OutputStreamWriter(System.out, "UTF8");
             DefaultHandler handler = new TrafficReporter();
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser saxParser = factory.newSAXParser();
-            saxParser.parse(new File(args[2]), handler);
+            saxParser.parse(new File(args[0]), handler);
         } catch (Throwable t) {
             t.printStackTrace();
             System.exit(1);
         }
     }
-    
 
-    private static ArrayList<String> readTags(String tagFile) {
-        ArrayList<String> tags = new ArrayList<String>();
-        try {
-            File file = new File(tagFile);
-            FileReader fileReader = new FileReader(file);
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                tags.add(line.trim());
-            }
-            fileReader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-        return tags;
-    }
-
-    public void startElement(String namespaceURI, String sName,  String qName,  Attributes attrs) throws SAXException {
-        echoText();
-        String eName = sName; 
+    public void startElement(String namespaceURI, String sName, String qName, Attributes attrs) throws SAXException {
+        String eName = sName;
         if ("".equals(eName)) {
-            eName = qName; 
+            eName = qName;
         }
-        emit("<" + eName);
+
+        if (eName.equals("packet")) {
+            reportItem = new ReportItem();
+        }
+
         if (attrs != null) {
             for (int i = 0; i < attrs.getLength(); i++) {
-                String aName = attrs.getLocalName(i); // Attr name
+                String aName = attrs.getLocalName(i);
                 if ("".equals(aName))
                     aName = attrs.getQName(i);
-                emit(" ");
-                emit(aName + "=\"" + attrs.getValue(i) + "\"");
+                if (aName.equals("name")) {
+                    String theName = attrs.getValue(i);
+                    String tmp = null;
+
+                    if (theName.equals("ip.src")) {
+                        tmp = attrs.getValue("show");
+                        reportItem.setSourceIp(tmp);
+                    }
+                    if (theName.equals("ip.dst")) {
+                        tmp = attrs.getValue("show");
+                        reportItem.setDestIp(tmp);
+                    }
+
+                    if (theName.equals("tcp")) {
+                        tmp = attrs.getValue("show");
+                        reportItem.setTcpOrUdp(ReportItem.protoType.TCP);
+                    }
+                    if (theName.equals("udp")) {
+                        tmp = attrs.getValue("show");
+                        reportItem.setTcpOrUdp(ReportItem.protoType.UDP);
+                    }
+                    if (reportItem.getTcpOrUdp() == ReportItem.protoType.TCP) {
+                        if (theName.equals("tcp.srcport")) {
+                            tmp = attrs.getValue("show");
+                            reportItem.setSourcePort(tmp);
+                        }
+                        if (theName.equals("tcp.dstport")) {
+                            tmp = attrs.getValue("show");
+                            reportItem.setDestPort(tmp);
+                        }
+                    }
+
+                    if (reportItem.getTcpOrUdp() == ReportItem.protoType.UDP) {
+                        if (theName.equals("udp.srcport")) {
+                            tmp = attrs.getValue("show");
+                            reportItem.setSourcePort(tmp);
+                        }
+                        if (theName.equals("udp.dstport")) {
+                            tmp = attrs.getValue("show");
+                            reportItem.setDestPort(tmp);
+                        }
+                    }
+                }
             }
         }
-        emit(">");
     }
 
-    public void endElement(String namespaceURI, String sName, String qName   ) throws SAXException {
-        echoText();
-        String eName = sName; 
-        if ("".equals(eName))
-            eName = qName; 
-        emit("<" + eName + ">");
+    public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
+        String eName = sName;
+        if ("".equals(eName)) {
+            eName = qName;
+        }
+        if (eName.equals("packet")) {
+            if (reportItem.isComplete()) {
+                System.out.println(reportItem);
+                reportItem = null;
+            } else {
+                System.out.println("Report item was incomplete: " + reportItem);
+            }
+        }
     }
 
     public void characters(char buf[], int offset, int len) throws SAXException {
         String s = new String(buf, offset, len);
-        if (textBuffer == null) {
-            textBuffer = new StringBuffer(s);
-        } else {
-            textBuffer.append(s);
-        }
-    }
-
-    private void echoText() throws SAXException {
-        if (textBuffer == null)
-            return;
-        String s = "" + textBuffer;
-        emit(s);
-        textBuffer = null;
-    }
-
-    private void emit(String s) throws SAXException {
-        try {
-            out.write(s);
-            out.flush();
-        } catch (IOException e) {
-            throw new SAXException("I/O error", e);
-        }
-    }
-
-    private void nl() throws SAXException {
-        String lineEnd = System.getProperty("line.separator");
-        try {
-            out.write(lineEnd);
-        } catch (IOException e) {
-            throw new SAXException("I/O error", e);
-        }
     }
 
     public void startDocument() throws SAXException {
-        emit("<?xml version='1.0' encoding='UTF-8'?>");
-        nl();
     }
 
     public void endDocument() throws SAXException {
         try {
-            nl();
             out.flush();
         } catch (IOException e) {
             throw new SAXException("I/O error", e);
         }
     }
-
 }

@@ -1,8 +1,21 @@
-<root name="root">
-<a name="xyz">Some XML
-<z name="someName" b="2" c="3">Some z text</z>
-</a>
-<b name="rotter" someAttr="abc &gt; &lt; &quot; &apos; &amp; def">text</b>
-</root>
-
-
+<pdml version="0" creator="wireshark/1.8.10" time="Tue Jan 30 13:25:17 2018" capture_file="/root/wireshark/m10.prom">
+<packet>
+  <proto name="ip" showname="Internet Protocol Version 4, Src: 138.253.48.180 (138.253.48.180), Dst: 138.253.178.105 (138.253.178.105)" size="20" pos="14">
+    <field name="ip.proto" showname="Protocol: TCP (6)" size="1" pos="23" show="6" value="06"></field>
+    <field name="ip.src" showname="Source: 138.253.48.180 (138.253.48.180)" size="4" pos="26" show="138.253.48.180" value="8afd30b4"></field>
+    <field name="ip.addr" showname="Source or Destination Address: 138.253.48.180 (138.253.48.180)" hide="yes" size="4" pos="26" show="138.253.48.180" value="8afd30b4"></field>
+    <field name="ip.src_host" showname="Source Host: 138.253.48.180" hide="yes" size="4" pos="26" show="138.253.48.180" value="8afd30b4"></field>
+    <field name="ip.host" showname="Source or Destination Host: 138.253.48.180" hide="yes" size="4" pos="26" show="138.253.48.180" value="8afd30b4"></field>
+    <field name="ip.dst" showname="Destination: 138.253.178.105 (138.253.178.105)" size="4" pos="30" show="138.253.178.105" value="8afdb269"></field>
+    <field name="ip.addr" showname="Source or Destination Address: 138.253.178.105 (138.253.178.105)" hide="yes" size="4" pos="30" show="138.253.178.105" value="8afdb269"></field>
+    <field name="ip.dst_host" showname="Destination Host: 138.253.178.105" hide="yes" size="4" pos="30" show="138.253.178.105" value="8afdb269"></field>
+    <field name="ip.host" showname="Source or Destination Host: 138.253.178.105" hide="yes" size="4" pos="30" show="138.253.178.105" value="8afdb269"></field>
+  </proto>
+  <proto name="tcp" showname="Transmission Control Protocol, Src Port: 55398 (55398), Dst Port: ssh (22), Seq: 1, Ack: 1, Len: 104" size="32" pos="34">
+    <field name="tcp.srcport" showname="Source port: 55398 (55398)" size="2" pos="34" show="55398" value="d866"></field>
+    <field name="tcp.dstport" showname="Destination port: ssh (22)" size="2" pos="36" show="22" value="0016"></field>
+    <field name="tcp.port" showname="Source or Destination Port: 55398" hide="yes" size="2" pos="34" show="55398" value="d866"></field>
+    <field name="tcp.port" showname="Source or Destination Port: 22" hide="yes" size="2" pos="36" show="22" value="0016"></field>
+  </proto>
+</packet>
+</pdml>
